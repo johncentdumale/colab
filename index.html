@@ -115,62 +115,206 @@ Your HTML code looks mostly correct, but there are a few improvements and correc
     </div>
 
     <script>
-        // Sign In/Up Modal Handling
-        document.getElementById('signin-link').addEventListener('click', function (e) {
-            e.preventDefault();
-            document.getElementById('signin-modal').style.display = 'flex';
+// Sign In/Up Modal Handling
+document.getElementById('signin-link').addEventListener('click', function (e) {
+    e.preventDefault();
+    document.getElementById('signin-modal').style.display = 'flex';
+});
+
+document.getElementById('signup-link').addEventListener('click', function (e) {
+    e.preventDefault();
+    document.getElementById('signup-modal').style.display = 'flex';
+});
+
+document.getElementById('close-signin').addEventListener('click', () => {
+    document.getElementById('signin-modal').style.display = 'none';
+});
+
+document.getElementById('close-signup').addEventListener('click', () => {
+    document.getElementById('signup-modal').style.display = 'none';
+});
+
+document.getElementById('close-cart').addEventListener('click', () => {
+    document.getElementById('cart-modal').style.display = 'none';
+});
+
+window.addEventListener('click', function (e) {
+    ['signin-modal', 'signup-modal', 'cart-modal'].forEach(id => {
+        const modal = document.getElementById(id);
+        if (e.target === modal) modal.style.display = 'none';
+    });
+});
+
+// Handle Sign Up
+document.querySelector('#signup-modal form').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const username = this.querySelector('input[type="text"]').value.trim();
+    const email = this.querySelector('input[type="email"]').value.trim();
+    const password = this.querySelector('input[type="password"]').value;
+
+    if (!username || !email || !password) {
+        alert("Please fill all fields.");
+        return;
+    }
+
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    if (users.some(user => user.email === email)) {
+        alert("Email already registered.");
+        return;
+    }
+
+    users.push({ username, email, password });
+    localStorage.setItem('users', JSON.stringify(users));
+    alert("Registration successful.");
+    document.getElementById('signup-modal').style.display = 'none';
+});
+
+// Handle Sign In
+document.querySelector('#signin-modal form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const email = this.querySelector('input[type="email"]').value.trim();
+    const password = this.querySelector('input[type="password"]').value;
+
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(u => u.email === email && u.password === password);
+    
+    if (user) {
+        alert(`Welcome back, ${user.username}!`);
+        document.getElementById('signin-modal').style.display = 'none';
+    } else {
+        alert("Invalid email or password.");
+    }
+});
+
+// Add product to cart
+document.querySelectorAll('.buy-now button').forEach(button => {
+    button.addEventListener('click', function (e) {
+        e.preventDefault();
+        const productCard = this.closest('.best-p1-txt');
+        const productName = productCard.querySelector('.name-of-p p').textContent;
+        const productPrice = productCard.querySelector('.price').textContent.trim();
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.push({ name: productName, price: productPrice });
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartCount();
+        alert(`"${productName}" has been added to your cart.`);
+    });
+});
+
+// Cart Modal Display
+document.getElementById('open-cart').addEventListener('click', () => {
+    updateCartModal();
+    document.getElementById('cart-modal').style.display = 'flex';
+});
+
+// Update Cart Count in Nav
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    document.getElementById('cart-count').textContent = cart.length;
+}
+
+// Update Cart Modal Content
+function updateCartModal() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cartItemsDiv = document.getElementById('cart-items');
+    const cartTotalDiv = document.getElementById('cart-total');
+    cartItemsDiv.innerHTML = '';
+    let total = 0;
+
+    if (cart.length === 0) {
+        cartItemsDiv.innerHTML = '<p>Your cart is empty.</p>';
+        cartTotalDiv.innerHTML = '';
+        return;
+    }
+
+    cart.forEach((item, index) => {
+        const price = parseFloat(item.price.replace(/[^0-9.]/g, ''));
+        total += price;
+
+        cartItemsDiv.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span>${item.name} - ${item.price}</span>
+                <button onclick="removeCartItem(${index})" class="cart-delete-btn">Delete</button>
+            </div>
+        `;
+    });
+
+    cartTotalDiv.innerHTML = `<strong>Total:</strong> ₱${total.toFixed(2)}`;
+}
+
+// Checkout
+function checkout() {
+    alert("Thank you for your purchase!");
+    localStorage.removeItem('cart');
+    updateCartModal();
+    updateCartCount();
+    document.getElementById('cart-modal').style.display = 'none';
+}
+
+// Init cart count on page load
+updateCartCount();
+
+// Load Store Products
+function loadStoreProducts() {
+    const container = document.querySelector('#sellers .best-seller');
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+
+    container.innerHTML = '';
+    products.forEach(product => {
+        container.innerHTML += `
+            <div class="best-p1">
+                <img src="${product.image}" alt="Product">
+                <div class="best-p1-txt">
+                    <div class="name-of-p"><p>${product.name}</p></div>
+                    <div class="rating">
+                        <i class='bx bxs-star'></i><i class='bx bxs-star'></i><i class='bx bxs-star'></i>
+                        <i class='bx bx-star'></i><i class='bx bx-star'></i>
+                    </div>
+                    <div class="price">&#8369;${product.price}</div>
+                    <div class="buy-now">
+                        <button>Buy Now</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    attachBuyButtons();
+}
+
+function attachBuyButtons() {
+    document.querySelectorAll('.buy-now button').forEach(button => {
+        button.addEventListener('click', function () {
+            const productCard = this.closest('.best-p1-txt');
+            const name = productCard.querySelector('.name-of-p p').textContent;
+            const price = productCard.querySelector('.price').textContent;
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.push({ name, price });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            alert(`${name} has been added to your cart.`);
         });
+    });
+}
 
-        document.getElementById('signup-link').addEventListener('click', function (e) {
-            e.preventDefault();
-            document.getElementById('signup-modal').style.display = 'flex';
-        });
+document.addEventListener('DOMContentLoaded', loadStoreProducts);
 
-        document.getElementById('close-signin').addEventListener('click', () => {
-            document.getElementById('signin-modal').style.display = 'none';
-        });
+function removeCartItem(index) {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartModal();
+    updateCartCount(); 
+}
+```
 
-        document.getElementById('close-signup').addEventListener('click', () => {
-            document.getElementById('signup-modal').style.display = 'none';
-        });
+### Key Changes and Improvements:
+1. **Modal Management**: The code now properly handles the opening and closing of modals for sign-in, sign-up, and the cart.
+2. **User  Registration**: The sign-up process checks for existing users and alerts the user if the email is already registered.
+3. **User  Login**: The sign-in process checks the credentials against stored users and provides feedback.
+4. **Cart Functionality**: The cart can now add items, display them, and allow for item removal.
+5. **Product Loading**: The function to load products from local storage is included, ensuring that products are displayed correctly.
 
-        document.getElementById('close-cart').addEventListener('click', () => {
-            document.getElementById('cart-modal').style.display = 'none';
-        });
-
-        window.addEventListener('click', function (e) {
-            ['signin-modal', 'signup-modal', 'cart-modal'].forEach(id => {
-                const modal = document.getElementById(id);
-                if (e.target === modal) modal.style.display = 'none';
-            });
-        });
-
-        // Handle Sign Up
-        document.querySelector('#signup-modal form').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const username = this.querySelector('input[type="text"]').value.trim();
-            const email = this.querySelector('input[type="email"]').value.trim();
-            const password = this.querySelector('input[type="password"]').value;
-
-            if (!username || !email || !password) {
-                alert("Please fill all fields.");
-                return;
-            }
-
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-            if (users.some(user => user.email === email)) {
-                alert("Email already registered.");
-                return;
-            }
-
-            users.push({ username, email, password });
-            localStorage.setItem('users', JSON.stringify(users));
-            alert("Registration successful.");
-            document.getElementById('signup-modal').style.display = 'none';
-        });
-
-        // Handle Sign In
-        document.querySelector('#signin-modal form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const email = this.query
+Make sure to integrate this JavaScript code into your HTML file, and ensure that the necessary HTML elements (like modals and buttons) are present for the code to function correctly.
+    </script>
