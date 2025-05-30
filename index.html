@@ -1,31 +1,175 @@
+Your HTML code looks mostly correct, but there are a few improvements and corrections that can be made for better structure, accessibility, and functionality. Below is the revised version of your code with comments on the changes made:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500&family=Nunito&family=Palanquin+Dark:wght@500&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Nike Store</title>
+</head>
+
+<body>
+    <section class="top-txt">
+        <div class="head container">
+            <div class="sing_in_up">
+                <a href="#" id="signin-link">SIGN IN</a>
+                <a href="#" id="signup-link">SIGN UP</a>
+            </div>
+        </div>
+    </section>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <input type="checkbox" name="" id="checkbox">
+            <div class="hamburger-lines">
+                <span class="line line1"></span>
+                <span class="line line2"></span>
+                <span class="line line3"></span>
+            </div>
+            <ul class="menu-items">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#sellers">Shop</a></li>
+            </ul>
+            <div class="logo">
+                <img src="https://i.postimg.cc/TP6JjSTt/logo.webp" alt="Nike Logo">
+            </div>
+
+            <div class="cart-btn">
+                <button id="open-cart">🛒 Cart (<span id="cart-count">0</span>)</button>
+            </div>
+        </div>
+
+        <a href="admin.html">Admin Dashboard</a>
+    </nav>
+    <section id="home">
+        <div class="home_page">
+            <div class="home_img">
+                <img src="NIKE+VOMERO+18.jpg" alt="Nike Product Image">
+            </div>
+            <div class="home_txt">
+                <p class="collectio">SUMMER COLLECTION</p>
+                <h2>FALL - WINTER<br>Collection 2023</h2>
+                <div class="home_label">
+                    <p>A specialist label creating luxury essentials. Ethically crafted<br>with an unwavering commitment to exceptional quality.</p>
+                </div>
+                <button><a href="#sellers">SHOP NOW</a><i class='bx bx-right-arrow-alt'></i></button>
+                <div class="home_social_icons">
+                    <a href="#"><i class='bx bxl-facebook'></i></a>
+                    <a href="#"><i class='bx bxl-twitter'></i></a>
+                    <a href="#"><i class='bx bxl-pinterest'></i></a>
+                    <a href="#"><i class='bx bxl-instagram'></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="sellers">
+        <div class="seller container">
+            <h2>Top Sales</h2>
+            <div class="best-seller"></div> <!-- Added a container for products -->
+        </div>
+    </section>
+
+    <!-- Sign In Modal -->
+    <div id="signin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-signin">&times;</span>
+            <h2>Sign In</h2>
+            <form>
+                <input type="email" placeholder="Email" required><br>
+                <input type="password" placeholder="Password" required><br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signup-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-signup">&times;</span>
+            <h2>Sign Up</h2>
+            <form>
+                <input type="text" placeholder="Username" required><br>
+                <input type="email" placeholder="Email" required><br>
+                <input type="password" placeholder="Password" required><br>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-cart">&times;</span>
+            <h2>Your Cart</h2>
+            <div id="cart-items"></div>
+            <div id="cart-total"></div>
+            <button onclick="checkout()">Checkout</button>
+        </div>
+    </div>
+
+    <script>
+        // Sign In/Up Modal Handling
+        document.getElementById('signin-link').addEventListener('click', function (e) {
+            e.preventDefault();
+            document.getElementById('signin-modal').style.display = 'flex';
+        });
+
+        document.getElementById('signup-link').addEventListener('click', function (e) {
+            e.preventDefault();
+            document.getElementById('signup-modal').style.display = 'flex';
+        });
+
+        document.getElementById('close-signin').addEventListener('click', () => {
+            document.getElementById('signin-modal').style.display = 'none';
+        });
+
+        document.getElementById('close-signup').addEventListener('click', () => {
+            document.getElementById('signup-modal').style.display = 'none';
+        });
+
+        document.getElementById('close-cart').addEventListener('click', () => {
             document.getElementById('cart-modal').style.display = 'none';
         });
+
         window.addEventListener('click', function (e) {
             ['signin-modal', 'signup-modal', 'cart-modal'].forEach(id => {
                 const modal = document.getElementById(id);
                 if (e.target === modal) modal.style.display = 'none';
             });
         });
+
         // Handle Sign Up
         document.querySelector('#signup-modal form').addEventListener('submit', function (e) {
             e.preventDefault();
+
             const username = this.querySelector('input[type="text"]').value.trim();
             const email = this.querySelector('input[type="email"]').value.trim();
             const password = this.querySelector('input[type="password"]').value;
+
             if (!username || !email || !password) {
                 alert("Please fill all fields.");
                 return;
             }
+
             const users = JSON.parse(localStorage.getItem('users')) || [];
             if (users.some(user => user.email === email)) {
                 alert("Email already registered.");
                 return;
             }
+
             users.push({ username, email, password });
             localStorage.setItem('users', JSON.stringify(users));
             alert("Registration successful.");
             document.getElementById('signup-modal').style.display = 'none';
         });
+
         // Handle Sign In
         document.querySelector('#signin-modal form').addEventListener('submit', function (e) {
             e.preventDefault();
